@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VVIT College Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0d0d14;
+            --surface: #13131e;
+            --card: #1a1a28;
+            --border: #2a2a40;
+            --accent: #6c63ff;
+            --accent2: #00d4aa;
+            --text: #f0f0f8;
+            --muted: #7a7a9a;
+            --radius: 16px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bot-avatar {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .bot-info h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .bot-info p { font-size: 0.8rem; color: var(--accent2); }
+
+        .online-dot {
+            width: 8px; height: 8px;
+            background: var(--accent2);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* CHAT AREA */
+        .chat-wrapper {
+            flex: 1;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+        }
+
+        #chatBox {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            padding-bottom: 1rem;
+        }
+
+        /* MESSAGES */
+        .msg-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            animation: fadeUp 0.3s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-row.user { flex-direction: row-reverse; }
+
+        .avatar {
+            width: 32px; height: 32px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .avatar.bot {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+        }
+
+        .avatar.user {
+            background: var(--card);
+            border: 1px solid var(--border);
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: 0.85rem 1.1rem;
+            border-radius: 16px;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .bubble.bot {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .bubble.user {
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* QUICK REPLIES */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-left: 44px;
+        }
+
+        .qr-btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .qr-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* TYPING */
+        .typing-bubble {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            padding: 0.85rem 1.1rem;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .dot {
+            width: 7px; height: 7px;
+            background: var(--muted);
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* INPUT */
+        .input-area {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 1rem 2rem;
+        }
+
+        .input-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        #userInput {
+            flex: 1;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #userInput:focus { border-color: var(--accent); }
+
+        #sendBtn {
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            width: 46px; height: 46px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        #sendBtn:hover { background: #8078ff; transform: scale(1.05); }
+
+        @media (max-width: 600px) {
+            .bubble { max-width: 85%; }
+            .input-area { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="bot-avatar">🎓</div>
+    <div class="bot-info">
+        <h1>VVIT Admissions Bot</h1>
+        <p><span class="online-dot"></span>Online — Ask me anything!</p>
+    </div>
+</header>
+
+<div class="chat-wrapper">
+    <div id="chatBox"></div>
+</div>
+
+<div class="input-area">
+    <div class="input-inner">
+        <input type="text" id="userInput" placeholder="Ask about fees, placements, admission..." autocomplete="off">
+        <button id="sendBtn">➤</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    const quickReplies = [
+        'What are the fees?',
+        'Tell me about placements',
+        'How to apply?',
+        'Hostel details',
+        'Courses offered',
+        'Contact info'
+    ];
+
+    function addMessage(text, sender) {
+        const row = document.createElement('div');
+        row.className = `msg-row ${sender}`;
+
+        const avatar = document.createElement('div');
+        avatar.className = `avatar ${sender}`;
+        avatar.textContent = sender === 'bot' ? '🎓' : '👤';
+
+        const bubble = document.createElement('div');
+        bubble.className = `bubble ${sender}`;
+        bubble.textContent = text;
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        chatBox.appendChild(row);
+        scrollDown();
+    }
+
+    function addQuickReplies() {
+        const qrDiv = document.createElement('div');
+        qrDiv.className = 'quick-replies';
+        quickReplies.forEach(label => {
+            const btn = document.createElement('button');
+            btn.className = 'qr-btn';
+            btn.textContent = label;
+            btn.onclick = () => {
+                qrDiv.remove();
+                sendMessage(label);
+            };
+            qrDiv.appendChild(btn);
+        });
+        chatBox.appendChild(qrDiv);
+        scrollDown();
+    }
+
+    function showTyping() {
+        const row = document.createElement('div');
+        row.className = 'msg-row bot';
+        row.id = 'typingRow';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar bot';
+        avatar.textContent = '🎓';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'typing-bubble';
+        bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        chatBox.appendChild(row);
+        scrollDown();
+    }
+
+    function removeTyping() {
+        const t = document.getElementById('typingRow');
+        if (t) t.remove();
+    }
+
+    function scrollDown() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage(text) {
+        const msg = text || userInput.value.trim();
+        if (!msg) return;
+        userInput.value = '';
+
+        addMessage(msg, 'user');
+        showTyping();
+
+        try {
+            const res = await fetch('/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await res.json();
+            removeTyping();
+            addMessage(data.response, 'bot');
+        } catch {
+            removeTyping();
+            addMessage('Sorry, something went wrong. Please try again.', 'bot');
+        }
+    }
+
+    sendBtn.addEventListener('click', () => sendMessage());
+    userInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // Welcome message on load
+    window.onload = () => {
+        setTimeout(() => {
+            addMessage("👋 Hello! Welcome to VVIT Admissions Chatbot.\n\nI can help you with:\n💰 Fees & Courses\n🎯 Placements & Salary\n📝 Admission Process\n🏠 Hostel & Campus Life\n\nWhat would you like to know?", 'bot');
+            setTimeout(addQuickReplies, 400);
+        }, 500);
+    };
+</script>
+
+</body>
+</html>
