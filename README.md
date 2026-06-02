@@ -18,4 +18,4 @@ A college admissions chatbot built with Django and HTML/CSS/JavaScript. Students
 - **Frontend:** HTML, CSS, JavaScript
 - **Logic:** Keyword-based FAQ matching
 
-## Project Structure
+
